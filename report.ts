@@ -53,21 +53,11 @@ interface DuneApiResponse {
   }
 }
 
-let report: Report = {
-  revenue: {
-    now: 0,
-    oneDayAgo: 0,
-    twoDaysAgo: 0,
-    oneWeekAgo: 0,
-    twoWeeksAgo: 0,
-    thirtyDaysAgo: 0,
-    sixtyDaysAgo: 0,
-    ninetyDaysAgo: 0,
-  },
-  days: [],
-}
-
-function updateRevenueReport(dateString: string, revenue: number) {
+function updateRevenueReport(
+  report: Report,
+  dateString: string,
+  revenue: number
+) {
   const date = moment(new Date(dateString))
   const timestamp = date.unix()
 
@@ -111,16 +101,30 @@ function updateRevenueReport(dateString: string, revenue: number) {
 }
 
 export async function generateReport() {
+  const report: Report = {
+    revenue: {
+      now: 0,
+      oneDayAgo: 0,
+      twoDaysAgo: 0,
+      oneWeekAgo: 0,
+      twoWeeksAgo: 0,
+      thirtyDaysAgo: 0,
+      sixtyDaysAgo: 0,
+      ninetyDaysAgo: 0,
+    },
+    days: [],
+  }
+
   const duneRes = await duneApi.get('query/2615088/results')
   const duneData: DuneApiResponse = duneRes.data
   const solanaData = duneData.result.rows
 
   heliumL1Data.forEach((record: UsageDataRecord) => {
-    updateRevenueReport(record.date, +record.usd_cost)
+    updateRevenueReport(report, record.date, +record.usd_cost)
   })
 
   solanaData.forEach((record) => {
-    updateRevenueReport(record.block_date, +record.dc_burned)
+    updateRevenueReport(report, record.block_date, +record.dc_burned)
   })
 
   return report
